@@ -36,12 +36,12 @@ const duration = durationIdx >= 0 ? parseInt(args[durationIdx + 1], 10) : 120;
 const DEVICE_NAME_HINTS = ['xiaojiang', 'stand demo'];
 const KNOWN_ADDRESS = 'e704a490-aefb-1ec2-a65e-ba016a0cfb32';
 
-// Service and Characteristic UUIDs (without dashes, lowercase for noble)
-const CHAR_FIRMWARE = '00000004000010008000005f9b34fb';
-const CHAR_UPNP = '00000010000010008000005f9b34fb'; // Auth control
-const CHAR_AVDTP = '00000019000010008000005f9b34fb'; // Auth data
-const CHAR_MEASURE = '0000fea8000010008000005f9b34fb'; // Measurement notify
-const CHAR_COMMAND = '0000fea7000010008000005f9b34fb'; // Command write
+// Characteristic UUIDs - noble uses short form for standard BT UUIDs
+const CHAR_FIRMWARE = '0004';
+const CHAR_UPNP = '0010';     // Auth control
+const CHAR_AVDTP = '0019';    // Auth data
+const CHAR_MEASURE = '0000fea800001000800000805f9b34fb'; // Measurement notify
+const CHAR_COMMAND = '0000fea700001000800000805f9b34fb'; // Command write
 
 // Protocol commands
 const CMD_AUTH_INIT = Buffer.from('a4', 'hex');
@@ -189,17 +189,16 @@ async function discoverCharacteristics(peripheral: Peripheral): Promise<boolean>
 
       for (const char of characteristics || []) {
         const uuid = char.uuid.toLowerCase();
-        if (uuid === CHAR_FIRMWARE || uuid === CHAR_FIRMWARE.replace(/-/g, '')) {
+        if (uuid === CHAR_FIRMWARE) {
           charFirmware = char;
-        } else if (uuid === CHAR_UPNP || uuid === CHAR_UPNP.replace(/-/g, '')) {
+        } else if (uuid === CHAR_UPNP) {
           charUpnp = char;
-        } else if (uuid === CHAR_AVDTP || uuid === CHAR_AVDTP.replace(/-/g, '')) {
+        } else if (uuid === CHAR_AVDTP) {
           charAvdtp = char;
-        } else if (uuid === CHAR_MEASURE || uuid === CHAR_MEASURE.replace(/-/g, '')) {
+        } else if (uuid === CHAR_MEASURE) {
           charMeasure = char;
         }
       }
-
       resolve(!!(charFirmware && charUpnp && charAvdtp && charMeasure));
     });
   });
