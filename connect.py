@@ -32,8 +32,9 @@ from mi_auth import (
     save_token,
 )
 
-DEVICE_NAME_HINTS = ["xiaojiang", "stand demo"]
-KNOWN_ADDRESS = "E704A490-AEFB-1EC2-A65E-BA016A0CFB32"
+# Detection methods (in priority order)
+HOTO_SERVICE_UUIDS = ["00001000-0000-1000-8000-00805f9b34fb"]  # Primary: service UUID
+DEVICE_NAME_HINTS = ["xiaojiang", "stand demo", "hoto"]  # Secondary: name hints
 
 # Characteristic UUIDs
 CHAR_FIRMWARE = "00000004-0000-1000-8000-00805f9b34fb"
@@ -60,17 +61,25 @@ recv_counter = 0
 
 
 async def find_device(timeout=15):
+    """Find HOTO device by service UUID (primary) or name hints (secondary)."""
     print(f"Scanning ({timeout}s)...")
     devices = await BleakScanner.discover(timeout=timeout, return_adv=True)
+
+    # Primary: detect by advertised service UUID
+    for addr, (device, adv) in devices.items():
+        service_uuids = [str(u).lower() for u in (adv.service_uuids or [])]
+        if any(svc in service_uuids for svc in HOTO_SERVICE_UUIDS):
+            name = device.name or adv.local_name or "(unnamed)"
+            print(f"Found by service UUID: {name} ({addr})")
+            return device
+
+    # Secondary: detect by name hints
     for addr, (device, adv) in devices.items():
         name = device.name or adv.local_name or ""
         if any(h in name.lower() for h in DEVICE_NAME_HINTS):
-            print(f"Found: {name} ({addr})")
+            print(f"Found by name: {name} ({addr})")
             return device
-    for addr, (device, adv) in devices.items():
-        if addr == KNOWN_ADDRESS:
-            print(f"Found by address: ({addr})")
-            return device
+
     return None
 
 
